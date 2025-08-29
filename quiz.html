@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Practice Quiz</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: #f4f7fc;
+            --container-bg: #ffffff;
+            --header-color: #333;
+            --text-color: #444;
+            --accent-color: #4a90e2;
+            --accent-hover: #357ABD;
+            --correct-bg: #e8f5e9;
+            --correct-text: #2e7d32;
+            --incorrect-bg: #ffebee;
+            --incorrect-text: #c62828;
+            --border-color: #e0e0e0;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: var(--primary-bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background-color: var(--container-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 800px;
+            padding: 35px;
+            margin: 20px 0;
+        }
+        h1, h2 {
+            text-align: center;
+            color: var(--header-color);
+            margin-bottom: 25px;
+        }
+        .section {
+            display: none;
+        }
+        #setup-section {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        select, button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-size: 16px;
+            background-color: #fff;
+        }
+        select {
+            cursor: pointer;
+        }
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #loading-status {
+            text-align: center;
+            color: #888;
+            margin-top: 15px;
+            min-height: 20px;
+        }
+        .quiz-card {
+            text-align: center;
+            padding: 30px;
+        }
+        .word-display {
+            font-size: 40px;
+            color: var(--accent-color);
+            margin: 30px 0;
+            font-weight: 700;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .option-btn {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            color: var(--text-color);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #e9ecef;
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+        }
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .feedback {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .correct { background-color: var(--correct-bg); color: var(--correct-text); }
+        .incorrect { background-color: var(--incorrect-bg); color: var(--incorrect-text); }
+        
+        #results-section .score-display {
+            text-align: center;
+            margin: 30px 0;
+            padding: 25px;
+            background-color: var(--primary-bg);
+            border-radius: 12px;
+        }
+        #results-section .score-ratio {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--header-color);
+        }
+        #results-section .score-percent {
+            font-size: 20px;
+            color: var(--text-color);
+        }
+        #wrong-words-section {
+            margin-top: 30px;
+        }
+        .results-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+        #wrong-words-list {
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .wrong-word-item {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .wrong-word-item:last-child {
+            border-bottom: none;
+        }
+        .wrong-word-item .english {
+            font-weight: 600;
+            color: var(--incorrect-text);
+        }
+        .wrong-word-item .chinese {
+            color: var(--text-color);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        #save-results-btn { background-color: #2e7d32; }
+        #save-results-btn:hover { background-color: #1b5e20; }
+        #new-quiz-btn { background-color: #f57f17; }
+        #new-quiz-btn:hover { background-color: #e65100; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vocabulary Practice Quiz</h1>
+        
+        <div id="setup-section" class="section">
+            <div class="form-group">
+                <label for="file-select">1. Select Vocabulary File:</label>
+                <select id="file-select">
+                    <option value="" disabled selected>Choose a file...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="word-list-select">2. Select Word List:</label>
+                <select id="word-list-select" disabled>
+                    <option value="" disabled selected>Waiting for file selection...</option>
+                </select>
+            </div>
+            <div id="loading-status"></div>
+            <button id="go-btn" disabled>Start Quiz</button>
+        </div>
+        
+        <div id="quiz-section" class="section">
+            <div class="quiz-card">
+                <div class="word-display" id="word-display">Vocabulary Word</div>
+                <div class="options-container" id="options-container"></div>
+                <div id="feedback" class="feedback" style="display: none;"></div>
+                <button id="next-btn" style="display: none;">Next</button>
+            </div>
+        </div>
+        
+        <div id="results-section" class="section">
+            <h2>Quiz Results</h2>
+            <div class="score-display">
+                <div id="score-ratio" class="score-ratio">0 / 0</div>
+                <div id="score-percent" class="score-percent">(0%)</div>
+            </div>
+            <div id="wrong-words-section">
+                <div class="results-title">Words to Review</div>
+                <div id="wrong-words-list"></div>
+            </div>
+            <div class="action-buttons">
+                <button id="save-results-btn">Save Results as Image</button>
+                <button id="new-quiz-btn">Start New Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vocabFiles = {
+            "Vocabulary File 1": "https://raw.githubusercontent.com/wangzhrm/IELTS/main/vocab1.json",
+            "Vocabulary File 2": "https://raw.githubusercontent.com/wangzhrm/IELTS/main/vocab2.json",
+            "Vocabulary File 3": "https://raw.githubusercontent.com/wangzhrm/IELTS/main/vocab3.json",
+            "Vocabulary File 4": "https://raw.githubusercontent.com/wangzhrm/IELTS/main/vocab4.json",
+            "Vocabulary File 5": "https://raw.githubusercontent.com/wangzhrm/IELTS/main/vocab5.json",
+        };
+
+        // Global State
+        let allVocabData = {};
+        let wordPool = [];
+        let currentWord = null;
+        let correctAnswers = 0, incorrectAnswers = 0;
+        let wrongAnswers = [];
+
+        // DOM Elements
+        const fileSelect = document.getElementById('file-select');
+        const wordListSelect = document.getElementById('word-list-select');
+        const loadingStatus = document.getElementById('loading-status');
+        const goBtn = document.getElementById('go-btn');
+        const setupSection = document.getElementById('setup-section');
+        const quizSection = document.getElementById('quiz-section');
+        const resultsSection = document.getElementById('results-section');
+        const wordDisplayEl = document.getElementById('word-display');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+
+        function initializeApp() {
+            Object.keys(vocabFiles).forEach(name => {
+                const option = document.createElement('option');
+                option.value = vocabFiles[name];
+                option.textContent = name;
+                fileSelect.appendChild(option);
+            });
+        }
+
+        async function handleFileSelect() {
+            const url = fileSelect.value;
+            if (!url) return;
+
+            loadingStatus.textContent = "Loading vocabulary data...";
+            wordListSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+            wordListSelect.disabled = true;
+            goBtn.disabled = true;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                allVocabData = await response.json();
+                populateWordListDropdown();
+                loadingStatus.textContent = "File loaded. Please select a word list.";
+            } catch (error) {
+                console.error("Failed to fetch vocabulary data:", error);
+                loadingStatus.textContent = "Error loading file. Please try again.";
+                alert("Could not load the vocabulary file. Please check your internet connection or the file URL.");
+            }
+        }
+
+        function populateWordListDropdown() {
+            wordListSelect.innerHTML = '<option value="" disabled selected>Choose a word list...</option>';
+            Object.keys(allVocabData).forEach(listKey => {
+                const option = document.createElement('option');
+                option.value = listKey;
+                option.textContent = listKey.charAt(0).toUpperCase() + listKey.slice(1);
+                wordListSelect.appendChild(option);
+            });
+            wordListSelect.disabled = false;
+        }
+
+        function startQuiz() {
+            const listKey = wordListSelect.value;
+            if (!listKey) return alert("Please select a word list.");
+            
+            wordPool = [...allVocabData[listKey]];
+            
+            // Reset state
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            wrongAnswers = [];
+
+            setupSection.style.display = 'none';
+            resultsSection.style.display = 'none';
+            quizSection.style.display = 'block';
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            if (wordPool.length === 0) {
+                endQuiz();
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * wordPool.length);
+            currentWord = wordPool.splice(randomIndex, 1)[0];
+
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            wordDisplayEl.textContent = currentWord.word;
+
+            const options = generateOptions();
+            optionsContainer.innerHTML = '';
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option.chineseMeaning;
+                button.onclick = () => checkAnswer(option.chineseMeaning);
+                optionsContainer.appendChild(button);
+            });
+
+            feedbackEl.style.display = 'none';
+            nextBtn.style.display = 'none';
+        }
+
+        function generateOptions() {
+            const listKey = wordListSelect.value;
+            const fullList = allVocabData[listKey];
+            const options = [currentWord];
+            const wrongOptionsPool = fullList.filter(w => w.word !== currentWord.word);
+
+            while (options.length < 4 && wrongOptionsPool.length > 0) {
+                const randomIndex = Math.floor(Math.random() * wrongOptionsPool.length);
+                options.push(wrongOptionsPool.splice(randomIndex, 1)[0]);
+            }
+
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function checkAnswer(selectedMeaning) {
+            Array.from(optionsContainer.children).forEach(button => button.disabled = true);
+            const isCorrect = selectedMeaning === currentWord.chineseMeaning;
+
+            if (isCorrect) {
+                feedbackEl.textContent = "Correct!";
+                feedbackEl.className = "feedback correct";
+                feedbackEl.style.display = 'block';
+                correctAnswers++;
+                setTimeout(() => nextQuestion(), 1200); // Automatically go to next question
+            } else {
+                feedbackEl.textContent = `Incorrect. The right answer is: ${currentWord.chineseMeaning}`;
+                feedbackEl.className = "feedback incorrect";
+                feedbackEl.style.display = 'block';
+                incorrectAnswers++;
+                wrongAnswers.push(currentWord);
+                nextBtn.style.display = 'block'; // Show next button for manual progression
+            }
+        }
+        
+        function endQuiz() {
+            quizSection.style.display = 'none';
+            resultsSection.style.display = 'block';
+
+            const total = correctAnswers + incorrectAnswers;
+            const percentage = total > 0 ? ((correctAnswers / total) * 100).toFixed(0) : 0;
+
+            document.getElementById('score-ratio').textContent = `${correctAnswers} / ${total} Correct`;
+            document.getElementById('score-percent').textContent = `(${percentage}%)`;
+
+            const wrongList = document.getElementById('wrong-words-list');
+            wrongList.innerHTML = '';
+
+            if (wrongAnswers.length === 0) {
+                wrongList.innerHTML = '<p style="text-align:center; padding: 20px;">Congratulations! You got all the words correct. 🎉</p>';
+            } else {
+                wrongAnswers.forEach(word => {
+                    const item = document.createElement('div');
+                    item.className = 'wrong-word-item';
+                    item.innerHTML = `<span class="english">${word.word}</span> <span class="chinese">${word.chineseMeaning}</span>`;
+                    wrongList.appendChild(item);
+                });
+            }
+        }
+        
+        function saveResultsAsImage() {
+            const originalBg = resultsSection.style.backgroundColor;
+            resultsSection.style.backgroundColor = 'white';
+
+            html2canvas(resultsSection).then(canvas => {
+                const link = document.createElement('a');
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const timestamp = `${year}-${month}-${day}_${hours}-${minutes}`;
+                
+                link.download = `vocab-practice-results-${timestamp}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                resultsSection.style.backgroundColor = originalBg;
+            });
+        }
+
+        function startNewQuiz() {
+            resultsSection.style.display = 'none';
+            setupSection.style.display = 'block';
+            fileSelect.selectedIndex = 0;
+            wordListSelect.innerHTML = '<option value="" disabled selected>Waiting for file selection...</option>';
+            wordListSelect.disabled = true;
+            goBtn.disabled = true;
+            loadingStatus.textContent = '';
+        }
+
+        // Event Listeners
+        fileSelect.addEventListener('change', handleFileSelect);
+        wordListSelect.addEventListener('change', () => { if (wordListSelect.value) goBtn.disabled = false; });
+        goBtn.addEventListener('click', startQuiz);
+        nextBtn.addEventListener('click', nextQuestion);
+        document.getElementById('save-results-btn').addEventListener('click', saveResultsAsImage);
+        document.getElementById('new-quiz-btn').addEventListener('click', startNewQuiz);
+        
+        initializeApp();
+    </script>
+</body>
+</html>
