@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Highlighting Tool for Teachers</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+        
+        header {
+            background: #4A86E8;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .input-section {
+            margin-bottom: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+            font-family: Arial, sans-serif;
+        }
+        
+        textarea:focus {
+            border-color: #4A86E8;
+            outline: none;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            background: #f5f8ff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            flex: 1;
+        }
+        
+        label {
+            margin-right: 10px;
+            font-weight: 500;
+        }
+        
+        select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 15px;
+            background: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        
+        #displayBtn {
+            background: #4A86E8;
+            color: white;
+        }
+        
+        #displayBtn:hover {
+            background: #3a76d8;
+        }
+        
+        #goBtn {
+            background: #34A853;
+            color: white;
+        }
+        
+        #goBtn:hover {
+            background: #2E8B47;
+        }
+        
+        #revealBtn {
+            background: #EA4335;
+            color: white;
+        }
+        
+        #revealBtn:hover {
+            background: #D33426;
+        }
+        
+        .stats {
+            background: #f0f7ff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 15px;
+        }
+        
+        .text-display {
+            background: #f9f9f9;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            margin-top: 20px;
+            line-height: 1.6;
+            font-size: 18px;
+            font-family: Arial, sans-serif;
+            text-align: justify;
+            word-spacing: normal;
+        }
+        
+        .word {
+            cursor: pointer;
+            padding: 2px 1px;
+            border-radius: 3px;
+            transition: all 0.2s;
+            display: inline;
+            margin: 0;
+            white-space: normal;
+        }
+        
+        .word:hover {
+            background: #f1f1f1;
+        }
+        
+        .highlighted {
+            background: #FFEB3B;
+            font-weight: 600;
+        }
+        
+        .covered {
+            background: #bbb;
+            color: #bbb;
+            border-radius: 3px;
+        }
+        
+        .visible-punctuation {
+            color: #333;
+            background: transparent !important;
+        }
+        
+        .placeholder {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                width: 100%;
+            }
+            
+            button {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Text Highlighting Tool</h1>
+            <p class="subtitle">For classroom reading activities</p>
+        </header>
+        
+        <div class="content">
+            <div class="input-section">
+                <textarea id="passageInput" placeholder="Paste your English passage here...">The quick brown fox jumps over the lazy dog. This sentence contains all the letters of the English alphabet. Teachers can use this tool to create engaging reading activities for their students. Students can highlight important words and then hide the rest to test their memory.</textarea>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="percentageSelect">Highlight Limit:</label>
+                        <select id="percentageSelect">
+                            <option value="10">10% of words</option>
+                            <option value="20">20% of words</option>
+                            <option value="30" selected>30% of words</option>
+                            <option value="40">40% of words</option>
+                            <option value="50">50% of words</option>
+                        </select>
+                    </div>
+                    
+                    <div class="control-group checkbox-container">
+                        <input type="checkbox" id="keepPunctuation" checked>
+                        <label for="keepPunctuation">Keep punctuation visible</label>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button id="displayBtn">Display Passage</button>
+                    <button id="goBtn">Hide Non-Highlighted Words</button>
+                    <button id="revealBtn">Reveal Full Passage</button>
+                </div>
+                
+                <div class="stats">
+                    Words highlighted: <span id="highlightCount">0</span> / 
+                    Allowed: <span id="allowedHighlights">0</span>
+                </div>
+            </div>
+            
+            <div id="passageDisplay" class="text-display">
+                <p class="placeholder">Your passage will appear here after you click "Display Passage"</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Text Highlighting Tool for Educators | Created for Classroom Use</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passageInput = document.getElementById('passageInput');
+            const displayBtn = document.getElementById('displayBtn');
+            const percentageSelect = document.getElementById('percentageSelect');
+            const keepPunctuation = document.getElementById('keepPunctuation');
+            const goBtn = document.getElementById('goBtn');
+            const revealBtn = document.getElementById('revealBtn');
+            const passageDisplay = document.getElementById('passageDisplay');
+            const highlightCountElem = document.getElementById('highlightCount');
+            const allowedHighlightsElem = document.getElementById('allowedHighlights');
+            
+            let wordElements = [];
+            let highlightedCount = 0;
+            let allowedHighlights = 0;
+            let totalWords = 0;
+            
+            // Display the passage when the button is clicked
+            displayBtn.addEventListener('click', function() {
+                const passage = passageInput.value.trim();
+                if (!passage) {
+                    alert('Please enter a passage first.');
+                    return;
+                }
+                
+                // Hide the input area
+                passageInput.style.display = 'none';
+                displayBtn.textContent = 'Refresh Display';
+                
+                // Clear previous content
+                passageDisplay.innerHTML = '';
+                wordElements = [];
+                highlightedCount = 0;
+                highlightCountElem.textContent = '0';
+                
+                // Split passage into words while preserving punctuation and spaces
+                const words = passage.split(/(\s+)/);
+                totalWords = words.filter(word => word.trim().length > 0).length;
+                
+                // Calculate allowed highlights based on percentage
+                const percentage = parseInt(percentageSelect.value);
+                allowedHighlights = Math.floor(totalWords * percentage / 100);
+                allowedHighlightsElem.textContent = allowedHighlights;
+                
+                // Create word elements
+                words.forEach(word => {
+                    if (word.trim().length === 0) {
+                        // Preserve whitespace (convert multiple spaces to single space)
+                        const space = document.createTextNode(' ');
+                        passageDisplay.appendChild(space);
+                    } else {
+                        const wordSpan = document.createElement('span');
+                        wordSpan.className = 'word';
+                        wordSpan.textContent = word;
+                        wordSpan.addEventListener('click', () => toggleHighlight(wordSpan));
+                        passageDisplay.appendChild(wordSpan);
+                        wordElements.push(wordSpan);
+                    }
+                });
+            });
+            
+            // Toggle word highlighting
+            function toggleHighlight(wordElement) {
+                if (wordElement.classList.contains('highlighted')) {
+                    // Remove highlight
+                    wordElement.classList.remove('highlighted');
+                    highlightedCount--;
+                } else {
+                    // Add highlight if allowed
+                    if (highlightedCount < allowedHighlights) {
+                        wordElement.classList.add('highlighted');
+                        highlightedCount++;
+                    } else {
+                        alert(`You can only highlight up to ${allowedHighlights} words (${percentageSelect.value}% of the text).`);
+                    }
+                }
+                highlightCountElem.textContent = highlightedCount;
+            }
+            
+            // Cover non-highlighted words
+            goBtn.addEventListener('click', function() {
+                const keepPunct = keepPunctuation.checked;
+                
+                wordElements.forEach(wordElement => {
+                    if (!wordElement.classList.contains('highlighted')) {
+                        // Check if we should keep punctuation visible
+                        if (keepPunct && /[.,!?;:]$/.test(wordElement.textContent)) {
+                            // Store original text
+                            const originalText = wordElement.textContent;
+                            wordElement.dataset.original = originalText;
+                            
+                            // Replace with covered version but keep punctuation visible
+                            const wordWithoutPunct = originalText.replace(/[.,!?;:]$/g, '');
+                            const punctuation = originalText.match(/[.,!?;:]$/g);
+                            
+                            if (wordWithoutPunct.length > 0) {
+                                wordElement.textContent = '▆'.repeat(wordWithoutPunct.length) + punctuation;
+                            } else {
+                                wordElement.textContent = punctuation;
+                            }
+                            
+                            wordElement.classList.add('covered');
+                            wordElement.classList.add('visible-punctuation');
+                        } else {
+                            // Store original text
+                            const originalText = wordElement.textContent;
+                            wordElement.dataset.original = originalText;
+                            
+                            // Replace with covered version
+                            wordElement.textContent = '▆'.repeat(originalText.length);
+                            wordElement.classList.add('covered');
+                        }
+                    }
+                });
+            });
+            
+            // Reveal the complete passage
+            revealBtn.addEventListener('click', function() {
+                wordElements.forEach(wordElement => {
+                    if (wordElement.classList.contains('covered')) {
+                        // Restore original text
+                        wordElement.textContent = wordElement.dataset.original;
+                        wordElement.classList.remove('covered');
+                        wordElement.classList.remove('visible-punctuation');
+                    }
+                });
+            });
+            
+            // Update allowed highlights when percentage changes
+            percentageSelect.addEventListener('change', function() {
+                if (totalWords > 0) {
+                    const percentage = parseInt(percentageSelect.value);
+                    allowedHighlights = Math.floor(totalWords * percentage / 100);
+                    allowedHighlightsElem.textContent = allowedHighlights;
+                    
+                    // If current highlights exceed new limit, remove excess
+                    if (highlightedCount > allowedHighlights) {
+                        const highlightedElements = document.querySelectorAll('.highlighted');
+                        const elementsToRemove = highlightedCount - allowedHighlights;
+                        
+                        for (let i = 0; i < elementsToRemove; i++) {
+                            highlightedElements[i].classList.remove('highlighted');
+                        }
+                        
+                        highlightedCount = allowedHighlights;
+                        highlightCountElem.textContent = highlightedCount;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
